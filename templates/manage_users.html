@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+
+{% block title %}Manage Users{% endblock %}
+
+{% block content %}
+<h2>Manage Users</h2>
+<table class="table">
+    <thead>
+        <tr>
+            <th>ID</th>
+            <th>Username</th>
+            <th>Status</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for user in users %}
+        <tr>
+            <td>{{ user[0] }}</td>
+            <td>{{ user[1] }}</td>
+            <td>{{ 'Active' if user[2] else 'Pending' }}</td>
+            <td>
+                {% if is_admin %}
+                    {% if not user[2] %}
+                        <a href="{{ url_for('approve_user', user_id=user[0]) }}" class="btn btn-success">Approve</a>
+                    {% endif %}
+                    <a href="{{ url_for('delete_user', user_id=user[0]) }}" class="btn btn-danger">Delete</a>
+                {% endif %}
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}

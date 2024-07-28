@@ -1,0 +1,132 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard{% endblock %}
+
+{% block content %}
+<style>
+    .dashboard-card {
+        border-radius: 8px;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        transition: box-shadow 0.3s ease;
+    }
+
+    .dashboard-card:hover {
+        box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2);
+    }
+
+    .dashboard-card .card-body {
+        padding: 2rem;
+    }
+
+    .dashboard-card .card-title {
+        font-size: 1.25rem;
+        font-weight: bold;
+        margin-bottom: 1rem;
+    }
+
+    .dashboard-card .card-text {
+        font-size: 2rem;
+        font-weight: 500;
+    }
+
+    .dashboard-card .list-group-item {
+        font-size: 1rem;
+        color: #333;
+    }
+
+    .dashboard-card .list-group-item:nth-child(even) {
+        background-color: #f8f9fa;
+    }
+</style>
+
+<div class="content" id="content">
+    <div class="container mt-4">
+        <h1 class="mb-4">Dashboard</h1>
+        <div class="row">
+            <!-- إجمالي المنتجات -->
+            <div class="col-md-4 mb-4">
+                <div class="card dashboard-card">
+                    <div class="card-body">
+                        <h5 class="card-title">Total Products</h5>
+                        <p class="card-text display-4">{{ total_products }}</p>
+                    </div>
+                </div>
+            </div>
+            <!-- إجمالي المستخدمين -->
+            <div class="col-md-4 mb-4">
+                <div class="card dashboard-card">
+                    <div class="card-body">
+                        <h5 class="card-title">Total Users</h5>
+                        <p class="card-text display-4">{{ total_users }}</p>
+                    </div>
+                </div>
+            </div>
+            <!-- تنبيهات حديثة -->
+            <div class="col-md-4 mb-4">
+                <div class="card dashboard-card">
+                    <div class="card-body">
+                        <h5 class="card-title">Recent Alerts</h5>
+                        <ul class="list-group">
+                            {% for alert in recent_alerts %}
+                                <li class="list-group-item">{{ alert }}</li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- رسم بياني -->
+        <div class="row">
+            <div class="col-md-12">
+                <div class="card dashboard-card">
+                    <div class="card-body">
+                        <h5 class="card-title">Product Statistics</h5>
+                        <canvas id="productChart" width="400" height="200"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- تضمين مكتبة Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        var ctx = document.getElementById('productChart').getContext('2d');
+        var productChart = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: ['Product A', 'Product B', 'Product C'], // استبدل بالبيانات الحقيقية
+                datasets: [{
+                    label: 'Number of Products',
+                    data: [12, 19, 3], // استبدل بالبيانات الحقيقية
+                    backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                    borderColor: 'rgba(75, 192, 192, 1)',
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                scales: {
+                    y: {
+                        beginAtZero: true
+                    }
+                },
+                plugins: {
+                    legend: {
+                        display: true
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function(tooltipItem) {
+                                return tooltipItem.dataset.label + ': ' + tooltipItem.raw;
+                            }
+                        }
+                    }
+                }
+            }
+        });
+    });
+</script>
+
+{% endblock %}

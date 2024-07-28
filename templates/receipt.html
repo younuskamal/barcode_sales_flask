@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Receipt</title>
+</head>
+<body>
+    <h1>Receipt</h1>
+    <p>Sale ID: {{ sale_id }}</p>
+    <p>Product: {{ product[2] }}</p> <!-- Assuming name is the 3rd column -->
+    <p>Quantity: {{ quantity }}</p>
+    <p>Price per Unit: {{ product[4] }}</p> <!-- Assuming sale_price is the 5th column -->
+    <p>Total Price: {{ total_price }}</p>
+    {% if discount %}
+    <p>Discount: {{ discount }}%</p>
+    <p>Discounted Price: {{ total_price }}</p>
+    {% endif %}
+    <p>Date: {{ sale_date }}</p>
+</body>
+</html>

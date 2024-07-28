@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Product System{% endblock %}</title>
+    <!-- تضمين Bootstrap CSS -->
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            overflow-x: hidden;
+        }
+        .sidebar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            height: 100%;
+            width: 250px;
+            background-color: #343a40;
+            color: #ffffff;
+            transition: width 0.3s ease, box-shadow 0.3s ease;
+            overflow-x: hidden;
+            white-space: nowrap;
+            z-index: 1000;
+            box-shadow: 2px 0 5px rgba(0, 0, 0, 0.3);
+            display: flex;
+            flex-direction: column;
+        }
+        .sidebar.closed {
+            width: 60px;
+        }
+        .sidebar .navbar {
+            padding: 15px;
+            background-color: #212529;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            transition: padding 0.3s ease;
+        }
+        .sidebar.closed .navbar {
+            padding: 15px 5px;
+        }
+        .sidebar .navbar .navbar-brand {
+            color: #ffffff;
+            font-size: 18px;
+            white-space: nowrap;
+            transition: opacity 0.3s ease;
+        }
+        .sidebar.closed .navbar .navbar-brand {
+            opacity: 0;
+        }
+        .sidebar .nav-content {
+            flex: 1;
+            overflow-y: auto;
+        }
+        .sidebar .nav-link {
+            color: #ffffff;
+            padding: 15px 20px;
+            font-size: 16px;
+            transition: padding 0.3s ease;
+            display: flex;
+            align-items: center;
+        }
+        .sidebar .nav-link .text {
+            display: inline;
+        }
+        .sidebar.closed .nav-link .text {
+            display: none;
+        }
+        .sidebar .nav-link:hover {
+            background-color: #495057;
+        }
+        .sidebar .nav-footer {
+            padding: 10px;
+            border-top: 1px solid #495057;
+            background-color: #343a40;
+            position: absolute;
+            bottom: 0;
+            width: 100%;
+            display: flex;
+            justify-content: center;
+        }
+        .sidebar .nav-footer .nav-link {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #ffffff;
+            padding: 10px;
+            margin: 0;
+        }
+        .sidebar .nav-footer .nav-link:hover {
+            background-color: #495057;
+        }
+        .sidebar-toggler {
+            position: absolute;
+            top: 50%;
+            left: 100%;
+            margin-left: -20px;
+            background-color: #495057;
+            color: #ffffff;
+            border: none;
+            cursor: pointer;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+            transition: left 0.3s ease, transform 0.3s ease;
+            z-index: 1001;
+        }
+        .sidebar.closed .sidebar-toggler {
+            left: calc(100% - 20px);
+        }
+        .sidebar-toggler .arrow {
+            width: 0;
+            height: 0;
+            border-style: solid;
+            border-width: 10px 12px 10px 0;
+            border-color: transparent #ffffff transparent transparent;
+            display: inline-block;
+            transition: transform 0.3s ease;
+        }
+        .sidebar.closed .sidebar-toggler .arrow {
+            transform: rotate(180deg);
+        }
+        .content {
+            margin-left: 250px;
+            transition: margin-left 0.3s ease;
+            padding: 20px;
+        }
+        .content.shift {
+            margin-left: 60px;
+        }
+    </style>
+</head>
+<body>
+    <!-- الشريط الجانبي -->
+    <div class="sidebar" id="sidebar">
+        <nav class="navbar navbar-dark">
+            <a class="navbar-brand" href="#">Product System</a>
+        </nav>
+        <div class="nav-content">
+            <ul class="navbar-nav">
+                {% if 'user_id' in session %}
+                <li class="nav-item">
+                    <a class="nav-link" href="{{ url_for('home') }}">
+                        <span class="text">Home</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="{{ url_for('sell_product') }}">
+                        <span class="text">Sale</span>
+                    </a>
+                </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('manage_products') }}">
+                            <span class="text">Manage Products</span>
+                        </a>
+                    </li>
+                    {% if is_admin %}
+                        <li class="nav-item">
+                            <a class="nav-link" href="{{ url_for('manage_users') }}">
+                                <span class="text">Manage Users</span>
+                            </a>
+                        </li>
+                    {% endif %}
+                {% else %}
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('login') }}">
+                            <span class="text">Login</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('register') }}">
+                            <span class="text">Register</span>
+                        </a>
+                    </li>
+                {% endif %}
+            </ul>
+        </div>
+        {% if 'user_id' in session %}
+        <div class="nav-footer">
+            <a class="nav-link" href="{{ url_for('logout') }}">
+                <span class="text">Logout</span>
+            </a>
+        </div>
+        {% endif %}
+        <!-- زر فتح/إغلاق الشريط الجانبي -->
+        <button class="sidebar-toggler" id="sidebarToggler">
+            <div class="arrow"></div>
+        </button>
+    </div>
+
+    <!-- محتوى الصفحة -->
+    <div class="content" id="content">
+        <div class="container mt-4">
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    <div class="alert-container">
+                        {% for category, message in messages %}
+                            <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+                                {{ message }}
+                                <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                                    <span aria-hidden="true">&times;</span>
+                                </button>
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+            {% endwith %}
+            {% block content %}
+            <!-- سيتم إدراج المحتوى من القوالب المشتقة هنا -->
+            {% endblock %}
+        </div>
+    </div>
+
+    <!-- تضمين jQuery و Bootstrap JS -->
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.1/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const sidebar = document.getElementById('sidebar');
+            const sidebarToggler = document.getElementById('sidebarToggler');
+            const content = document.getElementById('content');
+
+            // Toggle sidebar
+            sidebarToggler.addEventListener('click', function(event) {
+                event.stopPropagation(); // Prevent event from propagating to the document
+                sidebar.classList.toggle('closed');
+                content.classList.toggle('shift');
+            });
+
+            // Close sidebar when clicking outside of it
+            document.addEventListener('click', function(event) {
+                if (!sidebar.contains(event.target) && !sidebarToggler.contains(event.target) && !sidebar.classList.contains('closed')) {
+                    sidebar.classList.add('closed');
+                    content.classList.add('shift');
+                }
+            });
+
+            // Close sidebar when clicking on the sidebar itself
+            sidebar.addEventListener('click', function(event) {
+                event.stopPropagation(); // Prevent event from propagating to the document
+            });
+
+            // تأخير الرسائل التوضيحية قبل إخفائها
+            const alerts = document.querySelectorAll('.alert');
+            alerts.forEach(alert => {
+                setTimeout(() => {
+                    $(alert).alert('close');
+                }, 5000); // 5000 مللي ثانية = 5 ثوانٍ
+            });
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,115 @@
+{% extends "base.html" %}
+
+{% block title %}Sale{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h1 class="mb-4">Sale</h1>
+    <form method="post" id="sale-form">
+        <div class="form-group">
+            <label for="barcode">Barcode:</label>
+            <input type="text" id="barcode-input" name="barcode" class="form-control" required>
+        </div>
+        <div class="form-group">
+            <label for="quantity">Quantity:</label>
+            <input type="number" id="quantity" name="quantity" class="form-control" min="1" required>
+        </div>
+        <div class="form-group">
+            <label for="discount">Discount (%):</label>
+            <input type="number" id="discount" name="discount" class="form-control" min="0" max="100" step="0.01">
+        </div>
+        <button type="button" id="add-to-receipt" class="btn btn-primary">Add to Receipt</button>
+    </form>
+
+    <h2 class="mt-4">Receipt</h2>
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Product Name</th>
+                <th>Quantity</th>
+                <th>Price</th>
+                <th>Total</th>
+            </tr>
+        </thead>
+        <tbody id="receipt-items">
+            <!-- Items will be dynamically added here -->
+        </tbody>
+        <tfoot>
+            <tr>
+                <td colspan="3" class="text-right">Total:</td>
+                <td id="total-price">$0.00</td>
+            </tr>
+        </tfoot>
+    </table>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    document.getElementById('barcode-input').addEventListener('change', fetchProductDetails);
+    document.getElementById('add-to-receipt').addEventListener('click', addToReceipt);
+});
+
+async function fetchProductDetails() {
+    const barcode = document.getElementById('barcode-input').value;
+    if (!barcode) return;
+
+    try {
+        const response = await fetch(`/api/product?barcode=${barcode}`);
+        const product = await response.json();
+        if (product && product.name) {
+            // Display product details here
+            document.getElementById('product-name').innerText = `Name: ${product.name}`;
+            document.getElementById('product-price').innerText = `Price: $${product.sale_price}`;
+            document.getElementById('product-details').style.display = 'block';
+        } else {
+            document.getElementById('product-details').style.display = 'none';
+        }
+    } catch (error) {
+        console.error('Error fetching product details:', error);
+    }
+}
+
+function addToReceipt() {
+    const barcode = document.getElementById('barcode-input').value;
+    const quantity = parseInt(document.getElementById('quantity').value, 10);
+    const discount = parseFloat(document.getElementById('discount').value) || 0;
+
+    if (!barcode || quantity <= 0) {
+        alert('Please provide valid barcode and quantity.');
+        return;
+    }
+
+    fetch(`/api/product?barcode=${barcode}`)
+        .then(response => response.json())
+        .then(product => {
+            if (product && product.name) {
+                const totalPrice = product.sale_price * quantity;
+                const discountedPrice = totalPrice - (totalPrice * (discount / 100));
+
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${product.name}</td>
+                    <td>${quantity}</td>
+                    <td>$${product.sale_price.toFixed(2)}</td>
+                    <td>$${discountedPrice.toFixed(2)}</td>
+                `;
+                document.getElementById('receipt-items').appendChild(row);
+
+                updateTotalPrice();
+            } else {
+                alert('Product not found.');
+            }
+        })
+        .catch(error => console.error('Error adding product to receipt:', error));
+}
+
+function updateTotalPrice() {
+    let total = 0;
+    document.querySelectorAll('#receipt-items tr').forEach(row => {
+        const totalCell = row.cells[3];
+        total += parseFloat(totalCell.innerText.replace('$', ''));
+    });
+    document.getElementById('total-price').innerText = `$${total.toFixed(2)}`;
+}
+</script>
+{% endblock %}
