@@ -390,7 +390,7 @@ def api_product():
         return jsonify({'error': 'An error occurred'}), 500
     finally:
         cursor.close()
-
+        
 @app.route('/sell_product/complete', methods=['POST'])
 def complete_sale():
     if 'user_id' not in session:
@@ -408,12 +408,21 @@ def complete_sale():
         for item in items:
             cursor.execute('INSERT INTO sales (product_name, quantity, price, total) VALUES (%s, %s, %s, %s)',
                            (item['productName'], item['quantity'], item['price'], item['total']))
+            # Update stock quantity
+            cursor.execute('SELECT id, quantity FROM products WHERE name=%s', (item['productName'],))
+            product = cursor.fetchone()
+            if product:
+                product_id, available_quantity = product
+                new_quantity = available_quantity - item['quantity']
+                if new_quantity < 0:
+                    return jsonify({'error': 'Not enough stock for product {}'.format(item['productName'])}), 400
+                cursor.execute('UPDATE products SET quantity=%s WHERE id=%s', (new_quantity, product_id))
         
-        # Assume there's a method to update stock in products table
         mysql.connection.commit()
         return jsonify({'success': True}), 200
     except Exception as e:
         print(f"Database Error: {e}")
+        mysql.connection.rollback()
         return jsonify({'error': 'An error occurred'}), 500
     finally:
         cursor.close()

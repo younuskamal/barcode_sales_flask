@@ -19,6 +19,7 @@
             <input type="number" id="discount" name="discount" class="form-control" min="0" max="100" step="0.01">
         </div>
         <button type="button" id="add-to-receipt" class="btn btn-primary">Add to Receipt</button>
+        <button type="button" id="complete-sale" class="btn btn-success">Complete Sale</button>
     </form>
 
     <h2 class="mt-4">Receipt</h2>
@@ -47,6 +48,7 @@
 document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('barcode-input').addEventListener('change', fetchProductDetails);
     document.getElementById('add-to-receipt').addEventListener('click', addToReceipt);
+    document.getElementById('complete-sale').addEventListener('click', completeSale);
 });
 
 async function fetchProductDetails() {
@@ -57,10 +59,9 @@ async function fetchProductDetails() {
         const response = await fetch(`/api/product?barcode=${barcode}`);
         const product = await response.json();
         if (product && product.name) {
-            // Display product details here
+            document.getElementById('product-details').style.display = 'block';
             document.getElementById('product-name').innerText = `Name: ${product.name}`;
             document.getElementById('product-price').innerText = `Price: $${product.sale_price}`;
-            document.getElementById('product-details').style.display = 'block';
         } else {
             document.getElementById('product-details').style.display = 'none';
         }
@@ -110,6 +111,38 @@ function updateTotalPrice() {
         total += parseFloat(totalCell.innerText.replace('$', ''));
     });
     document.getElementById('total-price').innerText = `$${total.toFixed(2)}`;
+}
+
+async function completeSale() {
+    const items = Array.from(document.querySelectorAll('#receipt-items tr')).map(row => {
+        return {
+            productName: row.cells[0].innerText,
+            quantity: parseInt(row.cells[1].innerText, 10),
+            price: parseFloat(row.cells[2].innerText.replace('$', '')),
+            total: parseFloat(row.cells[3].innerText.replace('$', ''))
+        };
+    });
+
+    const totalPrice = parseFloat(document.getElementById('total-price').innerText.replace('$', ''));
+
+    try {
+        const response = await fetch('/sell_product/complete', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ items, totalPrice })
+        });
+        const result = await response.json();
+        if (result.success) {
+            alert('Sale completed successfully!');
+            // Optionally, reset form and receipt
+        } else {
+            alert('Error completing sale.');
+        }
+    } catch (error) {
+        console.error('Error completing sale:', error);
+    }
 }
 </script>
 {% endblock %}

@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+
+{% block title %}Sales Management{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h1 class="mb-4">Sales Management</h1>
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Sale ID</th>
+                <th>Product Name</th>
+                <th>Quantity</th>
+                <th>Total Price</th>
+                <th>Sale Date</th>
+                <th>Payment Method</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for sale in sales %}
+            <tr>
+                <td>{{ sale.id }}</td>
+                <td>{{ sale.product_name }}</td>
+                <td>{{ sale.quantity }}</td>
+                <td>${{ sale.total_price }}</td>
+                <td>{{ sale.sale_date }}</td>
+                <td>{{ sale.payment_method }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}
