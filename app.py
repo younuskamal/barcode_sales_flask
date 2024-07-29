@@ -302,30 +302,34 @@ def home():
         flash('You need to log in to access the dashboard.', 'danger')
         return redirect(url_for('login'))
 
-    # جمع معلومات لوحة التحكم
     cursor = mysql.connection.cursor()
     
     try:
+        # جمع عدد المنتجات
         cursor.execute('SELECT COUNT(*) FROM products')
         total_products = cursor.fetchone()[0]
         
+        # جمع عدد المستخدمين
         cursor.execute('SELECT COUNT(*) FROM users')
         total_users = cursor.fetchone()[0]
         
-        # يمكنك إضافة أي استعلامات أخرى لجمع المعلومات التي تريد عرضها
-        # على سبيل المثال، تنبيهات حديثة
-        recent_alerts = ["Alert 1", "Alert 2", "Alert 3"]  # هذه البيانات يمكن أن تأتي من قاعدة البيانات
+        # جمع بيانات المبيعات الأخيرة
+        cursor.execute('SELECT id, product_id, total_price, quantity, sale_date FROM sales ORDER BY sale_date DESC LIMIT 10')
+        recent_sales = cursor.fetchall()
+        
+        recent_alerts = ["Alert 1", "Alert 2", "Alert 3"]  # يمكنك تعديل هذه البيانات
         
     except Exception as e:
         print(f"Database Error: {e}")
         total_products = 0
         total_users = 0
+        recent_sales = []
         recent_alerts = []
         flash('An error occurred while fetching dashboard data.', 'danger')
     finally:
         cursor.close()
 
-    return render_template('home.html', total_products=total_products, total_users=total_users, recent_alerts=recent_alerts)
+    return render_template('home.html', total_products=total_products, total_users=total_users, recent_sales=recent_sales, recent_alerts=recent_alerts)
 
 @app.route('/sell_product', methods=['GET', 'POST'])
 def sell_product():
@@ -390,7 +394,7 @@ def api_product():
         return jsonify({'error': 'An error occurred'}), 500
     finally:
         cursor.close()
-        
+
 @app.route('/sell_product/complete', methods=['POST'])
 def complete_sale():
     if 'user_id' not in session:
@@ -406,18 +410,22 @@ def complete_sale():
     cursor = mysql.connection.cursor()
     try:
         for item in items:
-            cursor.execute('INSERT INTO sales (product_name, quantity, price, total) VALUES (%s, %s, %s, %s)',
-                           (item['productName'], item['quantity'], item['price'], item['total']))
-            # Update stock quantity
             cursor.execute('SELECT id, quantity FROM products WHERE name=%s', (item['productName'],))
             product = cursor.fetchone()
             if product:
                 product_id, available_quantity = product
-                new_quantity = available_quantity - item['quantity']
-                if new_quantity < 0:
-                    return jsonify({'error': 'Not enough stock for product {}'.format(item['productName'])}), 400
-                cursor.execute('UPDATE products SET quantity=%s WHERE id=%s', (new_quantity, product_id))
-        
+                if item['quantity'] > available_quantity:
+                    return jsonify({'error': f'Not enough stock for product {item["productName"]}'}), 400
+
+                # Insert into sales with new ID
+                sale_id = generate_short_id(12)  # Ensure this generates a unique ID
+                cursor.execute('INSERT INTO sales (id, product_id, quantity, total_price) VALUES (%s, %s, %s, %s)',
+                               (sale_id, product_id, item['quantity'], item['total']))
+                cursor.execute('UPDATE products SET quantity=%s WHERE id=%s',
+                               (available_quantity - item['quantity'], product_id))
+            else:
+                return jsonify({'error': f'Product {item["productName"]} not found'}), 404
+
         mysql.connection.commit()
         return jsonify({'success': True}), 200
     except Exception as e:

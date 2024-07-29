@@ -3,71 +3,96 @@
 {% block title %}Manage Products{% endblock %}
 
 {% block content %}
-<h2>Manage Products</h2>
+<div class="container mt-5">
+    <h2 class="text-center mb-5">Manage Products</h2>
 
-<!-- نموذج إضافة منتج -->
-<form method="post" action="{{ url_for('manage_products') }}">
-    <div class="form-group">
-        <label for="barcode">Barcode:</label>
-        <input type="text" id="barcode" name="barcode" class="form-control" required>
+    <!-- نموذج إضافة منتج -->
+    <div class="card shadow-lg border-light mb-4">
+        <div class="card-header bg-primary text-white">
+            <h5 class="card-title">Add New Product</h5>
+        </div>
+        <div class="card-body">
+            <form method="post" action="{{ url_for('manage_products') }}">
+                <div class="form-row">
+                    <div class="form-group col-md-6">
+                        <label for="barcode">Barcode:</label>
+                        <input type="text" id="barcode" name="barcode" class="form-control" required>
+                    </div>
+                    <div class="form-group col-md-6">
+                        <label for="name">Product Name:</label>
+                        <input type="text" id="name" name="name" class="form-control" required>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group col-md-6">
+                        <label for="purchase_price">Purchase Price:</label>
+                        <input type="number" id="purchase_price" name="purchase_price" class="form-control" step="0.01" required>
+                    </div>
+                    <div class="form-group col-md-6">
+                        <label for="sale_price">Sale Price:</label>
+                        <input type="number" id="sale_price" name="sale_price" class="form-control" step="0.01" required>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group col-md-6">
+                        <label for="quantity">Quantity:</label>
+                        <input type="number" id="quantity" name="quantity" class="form-control" required>
+                    </div>
+                    <div class="form-group col-md-6">
+                        <label for="manufacturer">Manufacturer:</label>
+                        <input type="text" id="manufacturer" name="manufacturer" class="form-control">
+                    </div>
+                </div>
+                <button type="submit" class="btn btn-primary btn-block">Add Product</button>
+            </form>
+        </div>
     </div>
-    <div class="form-group">
-        <label for="name">Product Name:</label>
-        <input type="text" id="name" name="name" class="form-control" required>
-    </div>
-    <div class="form-group">
-        <label for="purchase_price">Purchase Price:</label>
-        <input type="number" id="purchase_price" name="purchase_price" class="form-control" step="0.01" required>
-    </div>
-    <div class="form-group">
-        <label for="sale_price">Sale Price:</label>
-        <input type="number" id="sale_price" name="sale_price" class="form-control" step="0.01" required>
-    </div>
-    <div class="form-group">
-        <label for="quantity">Quantity:</label>
-        <input type="number" id="quantity" name="quantity" class="form-control" required>
-    </div>
-    <div class="form-group">
-        <label for="manufacturer">Manufacturer:</label>
-        <input type="text" id="manufacturer" name="manufacturer" class="form-control">
-    </div>
-    <button type="submit" class="btn btn-primary">Add Product</button>
-</form>
 
-<!-- عرض قائمة المنتجات -->
-<h3 class="mt-4">Product List</h3>
-<table class="table table-bordered">
-    <thead>
-        <tr>
-            <th>ID</th>
-            <th>Barcode</th>
-            <th>Name</th>
-            <th>Purchase Price</th>
-            <th>Sale Price</th>
-            <th>Quantity</th>
-            <th>Manufacturer</th>
-            <th>Created At</th>
-            <th>Actions</th>
-        </tr>
-    </thead>
-    <tbody>
-        {% for product in products %}
-        <tr>
-            <td>{{ product[0] }}</td>
-            <td>{{ product[1] }}</td>
-            <td>{{ product[2] }}</td>
-            <td>{{ product[3] }}</td>
-            <td>{{ product[4] }}</td>
-            <td>{{ product[5] }}</td>
-            <td>{{ product[6] }}</td>
-            <td>{{ product[7] }}</td>
-            <td>
-                <a href="{{ url_for('delete_product', product_id=product[0]) }}" class="btn btn-danger">Delete</a>
-                <a href="{{ url_for('edit_product', product_id=product[0]) }}" class="btn btn-success">Edit</a>
-            </td>
-        </tr>
-        {% endfor %}
-    </tbody>
-</table>
+    <!-- عرض قائمة المنتجات -->
+    <div class="card shadow-lg border-light">
+        <div class="card-header bg-secondary text-white">
+            <h5 class="card-title">Product List</h5>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover table-bordered">
+                    <thead class="thead-light">
+                        <tr>
+                            <th>ID</th>
+                            <th>Barcode</th>
+                            <th>Name</th>
+                            <th>Purchase Price</th>
+                            <th>Sale Price</th>
+                            <th>Quantity</th>
+                            <th>Manufacturer</th>
+                            <th>Created At</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for product in products %}
+                        <tr>
+                            <td>{{ product[0] }}</td>
+                            <td>{{ product[1] }}</td>
+                            <td>{{ product[2] }}</td>
+                            <td>${{ product[3] }}</td>
+                            <td>${{ product[4] }}</td>
+                            <td>{{ product[5] }}</td>
+                            <td>{{ product[6] }}</td>
+                            <td>{{ product[7] }}</td>
+                            <td>
+                                <a href="{{ url_for('delete_product', product_id=product[0]) }}" class="btn btn-danger btn-sm"><i class="fas fa-trash-alt"></i> Delete</a>
+                                <a href="{{ url_for('edit_product', product_id=product[0]) }}" class="btn btn-success btn-sm"><i class="fas fa-edit"></i> Edit</a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
 
+<!-- إضافة Font Awesome لتصميم الأيقونات -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
 {% endblock %}

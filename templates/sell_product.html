@@ -1,52 +1,123 @@
 {% extends "base.html" %}
 
-{% block title %}Sale{% endblock %}
+{% block title %}Sell Products{% endblock %}
 
 {% block content %}
-<div class="container mt-4">
-    <h1 class="mb-4">Sale</h1>
-    <form method="post" id="sale-form">
-        <div class="form-group">
-            <label for="barcode">Barcode:</label>
-            <input type="text" id="barcode-input" name="barcode" class="form-control" required>
-        </div>
-        <div class="form-group">
-            <label for="quantity">Quantity:</label>
-            <input type="number" id="quantity" name="quantity" class="form-control" min="1" required>
-        </div>
-        <div class="form-group">
-            <label for="discount">Discount (%):</label>
-            <input type="number" id="discount" name="discount" class="form-control" min="0" max="100" step="0.01">
-        </div>
-        <button type="button" id="add-to-receipt" class="btn btn-primary">Add to Receipt</button>
-        <button type="button" id="complete-sale" class="btn btn-success">Complete Sale</button>
-    </form>
+<div class="container mt-5">
+    <h1 class="mb-4 text-center">Sell Products</h1>
 
-    <h2 class="mt-4">Receipt</h2>
-    <table class="table">
-        <thead>
-            <tr>
-                <th>Product Name</th>
-                <th>Quantity</th>
-                <th>Price</th>
-                <th>Total</th>
-            </tr>
-        </thead>
-        <tbody id="receipt-items">
-            <!-- Items will be dynamically added here -->
-        </tbody>
-        <tfoot>
-            <tr>
-                <td colspan="3" class="text-right">Total:</td>
-                <td id="total-price">$0.00</td>
-            </tr>
-        </tfoot>
-    </table>
+    <div class="row">
+        <!-- Form Column -->
+        <div class="col-md-6">
+            <div class="card p-4 shadow-sm border-light">
+                <h2 class="card-title mb-4">Add to Receipt</h2>
+                <form id="sale-form">
+                    <div class="form-group mb-3">
+                        <label for="barcode-input" class="form-label">Barcode:</label>
+                        <input type="text" id="barcode-input" name="barcode" class="form-control" placeholder="Enter Barcode" required>
+                    </div>
+                    <div class="form-group mb-3">
+                        <label for="quantity" class="form-label">Quantity:</label>
+                        <input type="number" id="quantity" name="quantity" class="form-control" min="1" placeholder="1">
+                    </div>
+                    <div class="form-group mb-4">
+                        <label for="discount" class="form-label">Discount (%):</label>
+                        <input type="number" id="discount" name="discount" class="form-control" min="0" max="100" step="0.01" placeholder="0">
+                    </div>
+                    <div class="d-grid gap-2">
+                        <button type="button" id="add-to-receipt" class="btn btn-primary"><i class="bi bi-plus-circle"></i> Add to Receipt</button>
+                        <button type="button" id="complete-sale" class="btn btn-success"><i class="bi bi-check-circle"></i> Complete Sale</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Product Details Column -->
+        <div class="col-md-6">
+            <div class="card p-4 shadow-sm border-light mt-4 mt-md-0">
+                <h2 class="card-title mb-3">Product Details</h2>
+                <div id="product-details">
+                    <p id="product-name" class="mb-2"></p>
+                    <p id="product-price" class="mb-2"></p>
+                    <p id="product-stock" class="mb-2"></p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <h2 class="mt-5 text-center">Receipt</h2>
+    <div class="table-responsive mt-3">
+        <table class="table table-striped table-bordered">
+            <thead class="table-light">
+                <tr>
+                    <th>Product Name</th>
+                    <th>Quantity</th>
+                    <th>Price</th>
+                    <th>Total</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody id="receipt-items">
+                <!-- Items will be dynamically added here -->
+            </tbody>
+            <tfoot>
+                <tr>
+                    <td colspan="3" class="text-end fw-bold">Total:</td>
+                    <td id="total-price">$0.00</td>
+                    <td></td>
+                </tr>
+            </tfoot>
+        </table>
+    </div>
 </div>
+
+<!-- Success Modal -->
+<div class="modal fade" id="successModal" tabindex="-1" aria-labelledby="successModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-success">
+            <div class="modal-header bg-success text-white">
+                <h5 class="modal-title" id="successModalLabel"><i class="bi bi-check-circle"></i> Success</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body" id="successMessage">
+                <!-- Success message will be inserted here -->
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Error Modal -->
+<div class="modal fade" id="errorModal" tabindex="-1" aria-labelledby="errorModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-danger">
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title" id="errorModalLabel"><i class="bi bi-x-circle"></i> Error</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body" id="errorMessage">
+                <!-- Error message will be inserted here -->
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Links to Bootstrap CSS and Icons -->
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.3/font/bootstrap-icons.css" rel="stylesheet">
+
+<!-- Bootstrap JS and Icons Script -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.3/font/bootstrap-icons.js"></script>
 
 <script>
 document.addEventListener('DOMContentLoaded', () => {
-    document.getElementById('barcode-input').addEventListener('change', fetchProductDetails);
+    document.getElementById('barcode-input').addEventListener('input', fetchProductDetails);
     document.getElementById('add-to-receipt').addEventListener('click', addToReceipt);
     document.getElementById('complete-sale').addEventListener('click', completeSale);
 });
@@ -59,24 +130,34 @@ async function fetchProductDetails() {
         const response = await fetch(`/api/product?barcode=${barcode}`);
         const product = await response.json();
         if (product && product.name) {
-            document.getElementById('product-details').style.display = 'block';
-            document.getElementById('product-name').innerText = `Name: ${product.name}`;
-            document.getElementById('product-price').innerText = `Price: $${product.sale_price}`;
+            document.getElementById('product-name').innerHTML = `<strong>Name:</strong> ${product.name}`;
+            document.getElementById('product-price').innerHTML = `<strong>Price:</strong> $${product.sale_price.toFixed(2)}`;
+            document.getElementById('product-stock').innerHTML = `<strong>Stock:</strong> ${product.stock}`;
         } else {
-            document.getElementById('product-details').style.display = 'none';
+            showErrorModal('Product not found.');
+            clearProductDetails();
         }
     } catch (error) {
         console.error('Error fetching product details:', error);
+        showErrorModal('Error fetching product details.');
+        clearProductDetails();
     }
+}
+
+function clearProductDetails() {
+    document.getElementById('product-name').innerHTML = '';
+    document.getElementById('product-price').innerHTML = '';
+    document.getElementById('product-stock').innerHTML = '';
 }
 
 function addToReceipt() {
     const barcode = document.getElementById('barcode-input').value;
-    const quantity = parseInt(document.getElementById('quantity').value, 10);
+    const quantityInput = document.getElementById('quantity').value;
+    const quantity = parseInt(quantityInput, 10) || 1;
     const discount = parseFloat(document.getElementById('discount').value) || 0;
 
-    if (!barcode || quantity <= 0) {
-        alert('Please provide valid barcode and quantity.');
+    if (!barcode) {
+        showErrorModal('Please provide a valid barcode.');
         return;
     }
 
@@ -86,63 +167,87 @@ function addToReceipt() {
             if (product && product.name) {
                 const totalPrice = product.sale_price * quantity;
                 const discountedPrice = totalPrice - (totalPrice * (discount / 100));
-
                 const row = document.createElement('tr');
+
                 row.innerHTML = `
                     <td>${product.name}</td>
                     <td>${quantity}</td>
                     <td>$${product.sale_price.toFixed(2)}</td>
                     <td>$${discountedPrice.toFixed(2)}</td>
+                    <td><button type="button" class="btn btn-danger btn-sm" onclick="removeItem(this)">Remove</button></td>
                 `;
+
                 document.getElementById('receipt-items').appendChild(row);
 
                 updateTotalPrice();
+                clearProductDetails();
+                document.getElementById('sale-form').reset();
             } else {
-                alert('Product not found.');
+                showErrorModal('Product not found.');
             }
         })
-        .catch(error => console.error('Error adding product to receipt:', error));
+        .catch(error => {
+            console.error('Error adding product to receipt:', error);
+            showErrorModal('Error adding product to receipt.');
+        });
+}
+
+function removeItem(button) {
+    button.closest('tr').remove();
+    updateTotalPrice();
 }
 
 function updateTotalPrice() {
     let total = 0;
     document.querySelectorAll('#receipt-items tr').forEach(row => {
-        const totalCell = row.cells[3];
-        total += parseFloat(totalCell.innerText.replace('$', ''));
+        const price = parseFloat(row.cells[3].innerText.replace('$', ''));
+        total += price;
     });
     document.getElementById('total-price').innerText = `$${total.toFixed(2)}`;
 }
 
 async function completeSale() {
-    const items = Array.from(document.querySelectorAll('#receipt-items tr')).map(row => {
-        return {
-            productName: row.cells[0].innerText,
-            quantity: parseInt(row.cells[1].innerText, 10),
-            price: parseFloat(row.cells[2].innerText.replace('$', '')),
-            total: parseFloat(row.cells[3].innerText.replace('$', ''))
-        };
+    const items = [];
+    document.querySelectorAll('#receipt-items tr').forEach(row => {
+        const name = row.cells[0].innerText;
+        const quantity = parseInt(row.cells[1].innerText, 10);
+        const price = parseFloat(row.cells[3].innerText.replace('$', ''));
+        items.push({ name, quantity, price });
     });
 
-    const totalPrice = parseFloat(document.getElementById('total-price').innerText.replace('$', ''));
+    if (items.length === 0) {
+        showErrorModal('No items in receipt.');
+        return;
+    }
 
     try {
-        const response = await fetch('/sell_product/complete', {
+        const response = await fetch('/api/complete_sale', {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({ items, totalPrice })
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ items })
         });
-        const result = await response.json();
-        if (result.success) {
-            alert('Sale completed successfully!');
-            // Optionally, reset form and receipt
-        } else {
-            alert('Error completing sale.');
+
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
         }
+
+        showSuccessModal('Sale completed successfully!');
+        document.getElementById('receipt-items').innerHTML = '';
+        updateTotalPrice();
     } catch (error) {
         console.error('Error completing sale:', error);
+        showErrorModal('Error completing sale.');
     }
+}
+
+function showSuccessModal(message) {
+    document.getElementById('successMessage').innerText = message;
+    new bootstrap.Modal(document.getElementById('successModal')).show();
+}
+
+function showErrorModal(message) {
+    document.getElementById('errorMessage').innerText = message;
+    new bootstrap.Modal(document.getElementById('errorModal')).show();
 }
 </script>
 {% endblock %}
