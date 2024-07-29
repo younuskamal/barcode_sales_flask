@@ -417,8 +417,7 @@ def complete_sale():
                 if item['quantity'] > available_quantity:
                     return jsonify({'error': f'Not enough stock for product {item["productName"]}'}), 400
 
-                # Insert into sales with new ID
-                sale_id = generate_short_id(12)  # Ensure this generates a unique ID
+                sale_id = generate_short_id(12)
                 cursor.execute('INSERT INTO sales (id, product_id, quantity, total_price) VALUES (%s, %s, %s, %s)',
                                (sale_id, product_id, item['quantity'], item['total']))
                 cursor.execute('UPDATE products SET quantity=%s WHERE id=%s',

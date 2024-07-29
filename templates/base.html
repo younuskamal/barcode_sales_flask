@@ -148,6 +148,26 @@
             right: 20px;
             z-index: 1000;
         }
+
+        /* أنماط علامة التحميل */
+        .loader {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(255, 255, 255, 0.8);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 10000; /* تأكد من أن العلامة تظهر فوق كل العناصر */
+            transition: opacity 0.3s ease, visibility 0.3s ease;
+        }
+
+        .loader.hidden {
+            opacity: 0;
+            visibility: hidden;
+        }
     </style>
 </head>
 <body>
@@ -238,6 +258,13 @@
         </div>
     </div>
 
+    <!-- علامة التحميل -->
+    <div class="loader" id="loader">
+        <div class="spinner-border text-primary" role="status">
+            <span class="sr-only">Loading...</span>
+        </div>
+    </div>
+
     <!-- تضمين jQuery و Bootstrap JS -->
     <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.1/dist/umd/popper.min.js"></script>
@@ -247,6 +274,7 @@
             const sidebar = document.getElementById('sidebar');
             const sidebarToggler = document.getElementById('sidebarToggler');
             const content = document.getElementById('content');
+            const loader = document.getElementById('loader');
 
             // Toggle sidebar
             sidebarToggler.addEventListener('click', function(event) {
@@ -266,6 +294,11 @@
             // Close sidebar when clicking on the sidebar itself
             sidebar.addEventListener('click', function(event) {
                 event.stopPropagation(); // Prevent event from propagating to the document
+            });
+
+            // إخفاء علامة التحميل بعد تحميل الصفحة
+            window.addEventListener('load', function() {
+                loader.classList.add('hidden');
             });
 
             // تأخير الرسائل التوضيحية قبل إخفائها

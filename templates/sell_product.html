@@ -18,7 +18,7 @@
                     </div>
                     <div class="form-group mb-3">
                         <label for="quantity" class="form-label">Quantity:</label>
-                        <input type="number" id="quantity" name="quantity" class="form-control" min="1" placeholder="1">
+                        <input type="number" id="quantity" name="quantity" class="form-control" min="1" placeholder="1" required>
                     </div>
                     <div class="form-group mb-4">
                         <label for="discount" class="form-label">Discount (%):</label>
@@ -128,11 +128,17 @@ async function fetchProductDetails() {
 
     try {
         const response = await fetch(`/api/product?barcode=${barcode}`);
+        if (!response.ok) {
+            showErrorModal('Error fetching product details.');
+            clearProductDetails();
+            return;
+        }
+
         const product = await response.json();
         if (product && product.name) {
             document.getElementById('product-name').innerHTML = `<strong>Name:</strong> ${product.name}`;
             document.getElementById('product-price').innerHTML = `<strong>Price:</strong> $${product.sale_price.toFixed(2)}`;
-            document.getElementById('product-stock').innerHTML = `<strong>Stock:</strong> ${product.stock}`;
+            document.getElementById('product-stock').innerHTML = `<strong>Stock:</strong> ${product.stock || 'N/A'}`;
         } else {
             showErrorModal('Product not found.');
             clearProductDetails();
@@ -162,7 +168,12 @@ function addToReceipt() {
     }
 
     fetch(`/api/product?barcode=${barcode}`)
-        .then(response => response.json())
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Network response was not ok.');
+            }
+            return response.json();
+        })
         .then(product => {
             if (product && product.name) {
                 const totalPrice = product.sale_price * quantity;
@@ -198,21 +209,24 @@ function removeItem(button) {
 }
 
 function updateTotalPrice() {
+    const rows = document.querySelectorAll('#receipt-items tr');
     let total = 0;
-    document.querySelectorAll('#receipt-items tr').forEach(row => {
-        const price = parseFloat(row.cells[3].innerText.replace('$', ''));
-        total += price;
+
+    rows.forEach(row => {
+        const totalCell = row.cells[3];
+        total += parseFloat(totalCell.innerText.replace('$', ''));
     });
+
     document.getElementById('total-price').innerText = `$${total.toFixed(2)}`;
 }
 
-async function completeSale() {
+function completeSale() {
     const items = [];
     document.querySelectorAll('#receipt-items tr').forEach(row => {
         const name = row.cells[0].innerText;
         const quantity = parseInt(row.cells[1].innerText, 10);
         const price = parseFloat(row.cells[3].innerText.replace('$', ''));
-        items.push({ name, quantity, price });
+        items.push({ productName: name, quantity, total: price });
     });
 
     if (items.length === 0) {
@@ -220,24 +234,30 @@ async function completeSale() {
         return;
     }
 
-    try {
-        const response = await fetch('/api/complete_sale', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ items })
-        });
-
+    fetch('/sell_product/complete', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ items, totalPrice: parseFloat(document.getElementById('total-price').innerText.replace('$', '')) })
+    })
+    .then(response => {
         if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);
         }
-
-        showSuccessModal('Sale completed successfully!');
-        document.getElementById('receipt-items').innerHTML = '';
-        updateTotalPrice();
-    } catch (error) {
+        return response.json();
+    })
+    .then(data => {
+        if (data.success) {
+            showSuccessModal('Sale completed successfully!');
+            document.getElementById('receipt-items').innerHTML = '';
+            updateTotalPrice();
+        } else {
+            showErrorModal('Error completing sale.');
+        }
+    })
+    .catch(error => {
         console.error('Error completing sale:', error);
         showErrorModal('Error completing sale.');
-    }
+    });
 }
 
 function showSuccessModal(message) {
