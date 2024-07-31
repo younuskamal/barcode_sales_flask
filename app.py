@@ -342,6 +342,8 @@ def sell_product():
         barcode = request.form['barcode']
         quantity = int(request.form['quantity'])
         discount = float(request.form.get('discount', 0))
+        buyer_name = request.form.get('buyer_name', '')
+        buyer_phone = request.form.get('buyer_phone', '')
 
         cursor = mysql.connection.cursor()
         try:
@@ -357,10 +359,12 @@ def sell_product():
                     total_price = sale_price * quantity
                     if discount:
                         total_price -= total_price * (discount / 100)
-                    sale_id = generate_short_id(12)
+                    
+                    # توليد receipt_id للفاتورة
+                    receipt_id = generate_short_id(12)
 
-                    cursor.execute('INSERT INTO sales (id, product_id, quantity, total_price) VALUES (%s, %s, %s, %s)',
-                                   (sale_id, product_id, quantity, total_price))
+                    cursor.execute('INSERT INTO sales (id, product_id, quantity, total_price, buyer_name, buyer_phone, receipt_id) VALUES (%s, %s, %s, %s, %s, %s, %s)',
+                                   (generate_short_id(12), product_id, quantity, total_price, buyer_name, buyer_phone, receipt_id))
                     cursor.execute('UPDATE products SET quantity=%s WHERE id=%s',
                                    (available_quantity - quantity, product_id))
 
@@ -404,12 +408,17 @@ def complete_sale():
     data = request.get_json()
     items = data.get('items')
     total_price = data.get('totalPrice')
+    buyer_name = data.get('buyerName', '')
+    buyer_phone = data.get('buyerPhone', '')
 
     if not items or total_price is None:
         return jsonify({'error': 'Invalid data'}), 400
 
     cursor = mysql.connection.cursor()
     try:
+        # توليد receipt_id للفاتورة
+        receipt_id = generate_short_id(12)
+        
         for item in items:
             cursor.execute('SELECT id, quantity, sale_price FROM products WHERE name=%s', (item['productName'],))
             product = cursor.fetchone()
@@ -418,10 +427,9 @@ def complete_sale():
                 if item['quantity'] > available_quantity:
                     return jsonify({'error': f'Not enough stock for product {item["productName"]}'}), 400
 
-                sale_id = generate_short_id(12)
                 total = item['quantity'] * sale_price
-                cursor.execute('INSERT INTO sales (id, product_id, quantity, total_price) VALUES (%s, %s, %s, %s)',
-                               (sale_id, product_id, item['quantity'], total))
+                cursor.execute('INSERT INTO sales (id, product_id, quantity, total_price, buyer_name, buyer_phone, receipt_id) VALUES (%s, %s, %s, %s, %s, %s, %s)',
+                               (generate_short_id(12), product_id, item['quantity'], total, buyer_name, buyer_phone, receipt_id))
                 cursor.execute('UPDATE products SET quantity=%s WHERE id=%s',
                                (available_quantity - item['quantity'], product_id))
             else:
@@ -432,13 +440,15 @@ def complete_sale():
         # Fetch receipt data
         receipt_items = []
         for item in items:
+            cursor.execute('SELECT sale_price FROM products WHERE name=%s', (item['productName'],))
+            sale_price = cursor.fetchone()[0]
             receipt_items.append({
                 'productName': item['productName'],
                 'quantity': item['quantity'],
                 'total': item['quantity'] * sale_price
             })
 
-        return jsonify({'success': True, 'receipt': receipt_items}), 200
+        return jsonify({'success': True, 'receipt': receipt_items, 'receipt_id': receipt_id}), 200
     except Exception as e:
         print(f"Database Error: {e}")
         mysql.connection.rollback()

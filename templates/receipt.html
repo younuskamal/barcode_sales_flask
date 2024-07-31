@@ -5,44 +5,33 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Receipt</title>
     <style>
-        body {
-            font-family: Arial, sans-serif;
-            margin: 20px;
+        .receipt {
+            width: 80%;
+            margin: 0 auto;
         }
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-bottom: 20px;
+        .receipt-header, .receipt-footer {
+            text-align: center;
         }
-        table, th, td {
-            border: 1px solid black;
-            padding: 8px;
-        }
-        th {
-            background-color: #f2f2f2;
+        .receipt-body {
+            margin: 20px 0;
         }
     </style>
 </head>
 <body>
-    <h1>Receipt</h1>
-    <table>
-        <thead>
-            <tr>
-                <th>Product Name</th>
-                <th>Quantity</th>
-                <th>Total</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for item in receipt_items %}
-            <tr>
-                <td>{{ item.productName }}</td>
-                <td>{{ item.quantity }}</td>
-                <td>{{ item.total }}</td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
-    <p>Total Price: {{ total_price }}</p>
+    <div class="receipt">
+        <div class="receipt-header">
+            <h1>Receipt</h1>
+            <p>Seller ID: {{ receipt.seller_id }}</p>
+            <p>Buyer Name: {{ receipt.buyer_name }}</p>
+            <p>Buyer Phone: {{ receipt.buyer_phone }}</p>
+            <p>Date: {{ receipt.sale_date.strftime('%Y-%m-%d %H:%M:%S') }}</p>
+        </div>
+        <div class="receipt-body">
+            <p>Total Price: {{ receipt.total_price }}</p>
+        </div>
+        <div class="receipt-footer">
+            <p>Thank you for your purchase!</p>
+        </div>
+    </div>
 </body>
 </html>
