@@ -4,18 +4,45 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Receipt</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+        }
+        table, th, td {
+            border: 1px solid black;
+            padding: 8px;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+    </style>
 </head>
 <body>
     <h1>Receipt</h1>
-    <p>Sale ID: {{ sale_id }}</p>
-    <p>Product: {{ product[2] }}</p> <!-- Assuming name is the 3rd column -->
-    <p>Quantity: {{ quantity }}</p>
-    <p>Price per Unit: {{ product[4] }}</p> <!-- Assuming sale_price is the 5th column -->
+    <table>
+        <thead>
+            <tr>
+                <th>Product Name</th>
+                <th>Quantity</th>
+                <th>Total</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for item in receipt_items %}
+            <tr>
+                <td>{{ item.productName }}</td>
+                <td>{{ item.quantity }}</td>
+                <td>{{ item.total }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
     <p>Total Price: {{ total_price }}</p>
-    {% if discount %}
-    <p>Discount: {{ discount }}%</p>
-    <p>Discounted Price: {{ total_price }}</p>
-    {% endif %}
-    <p>Date: {{ sale_date }}</p>
 </body>
 </html>

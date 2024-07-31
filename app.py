@@ -4,6 +4,7 @@ from werkzeug.security import generate_password_hash, check_password_hash
 import os
 import random
 import string
+from flask import jsonify
 
 # إنشاء تطبيق Flask
 app = Flask(__name__)
@@ -410,23 +411,34 @@ def complete_sale():
     cursor = mysql.connection.cursor()
     try:
         for item in items:
-            cursor.execute('SELECT id, quantity FROM products WHERE name=%s', (item['productName'],))
+            cursor.execute('SELECT id, quantity, sale_price FROM products WHERE name=%s', (item['productName'],))
             product = cursor.fetchone()
             if product:
-                product_id, available_quantity = product
+                product_id, available_quantity, sale_price = product
                 if item['quantity'] > available_quantity:
                     return jsonify({'error': f'Not enough stock for product {item["productName"]}'}), 400
 
                 sale_id = generate_short_id(12)
+                total = item['quantity'] * sale_price
                 cursor.execute('INSERT INTO sales (id, product_id, quantity, total_price) VALUES (%s, %s, %s, %s)',
-                               (sale_id, product_id, item['quantity'], item['total']))
+                               (sale_id, product_id, item['quantity'], total))
                 cursor.execute('UPDATE products SET quantity=%s WHERE id=%s',
                                (available_quantity - item['quantity'], product_id))
             else:
                 return jsonify({'error': f'Product {item["productName"]} not found'}), 404
 
         mysql.connection.commit()
-        return jsonify({'success': True}), 200
+
+        # Fetch receipt data
+        receipt_items = []
+        for item in items:
+            receipt_items.append({
+                'productName': item['productName'],
+                'quantity': item['quantity'],
+                'total': item['quantity'] * sale_price
+            })
+
+        return jsonify({'success': True, 'receipt': receipt_items}), 200
     except Exception as e:
         print(f"Database Error: {e}")
         mysql.connection.rollback()
