@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Receipt - {{ receipt_id }}</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        .receipt {
+            border: 1px solid #ccc;
+            padding: 20px;
+            max-width: 600px;
+            margin: auto;
+        }
+        .receipt h1 {
+            text-align: center;
+        }
+        .receipt-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+        .receipt-table th, .receipt-table td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+        .receipt-table th {
+            background-color: #f4f4f4;
+        }
+        .total {
+            text-align: right;
+            margin-top: 20px;
+            font-weight: bold;
+        }
+        @media print {
+            .receipt {
+                border: none;
+                padding: 0;
+            }
+            .receipt-table th, .receipt-table td {
+                border: 1px solid #000;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="receipt">
+        <h1>Receipt - {{ receipt_id }}</h1>
+        <table class="receipt-table">
+            <thead>
+                <tr>
+                    <th>Product Name</th>
+                    <th>Quantity</th>
+                    <th>Price per Unit</th>
+                    <th>Total</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in receipt_items %}
+                <tr>
+                    <td>{{ item.productName }}</td>
+                    <td>{{ item.quantity }}</td>
+                    <td>${{ '%.2f'|format(item.salePrice) }}</td>
+                    <td>${{ '%.2f'|format(item.total) }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        <div class="total">
+            Total Amount: ${{ '%.2f'|format(receipt_items|sum(attribute='total')) }}
+        </div>
+    </div>
+    <script>
+        window.onload = function() {
+            window.print();
+        }
+    </script>
+</body>
+</html>
