@@ -1,0 +1,149 @@
+{% extends "base.html" %}
+
+{% block content %}
+    <h1>Search</h1>
+
+    <ul class="nav nav-tabs" id="searchTabs" role="tablist">
+        <li class="nav-item">
+            <a class="nav-link active" id="receipt-tab" data-toggle="tab" href="#receipt" role="tab" aria-controls="receipt" aria-selected="true">Search Receipts</a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" id="product-tab" data-toggle="tab" href="#product" role="tab" aria-controls="product" aria-selected="false">Search Products</a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" id="user-tab" data-toggle="tab" href="#user" role="tab" aria-controls="user" aria-selected="false">Search Users</a>
+        </li>
+    </ul>
+
+    <div class="tab-content" id="searchTabsContent">
+        <!-- Search Receipts Tab -->
+        <div class="tab-pane fade show active" id="receipt" role="tabpanel" aria-labelledby="receipt-tab">
+            <form method="post" action="{{ url_for('search_receipt') }}">
+                <div class="form-group">
+                    <label for="receipt_id">Receipt ID</label>
+                    <input type="text" class="form-control" id="receipt_id" name="receipt_id" required>
+                </div>
+                <button type="submit" class="btn btn-primary">Search</button>
+            </form>
+
+            {% if receipt %}
+                <h2>Receipt Details</h2>
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Receipt ID</th>
+                            <th>Buyer Name</th>
+                            <th>Buyer Phone</th>
+                            <th>Total Price</th>
+                            <th>Sale Date</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>{{ receipt.receipt_id }}</td>
+                            <td>{{ receipt.buyer_name }}</td>
+                            <td>{{ receipt.buyer_phone }}</td>
+                            <td>{{ receipt.total_price }}</td>
+                            <td>{{ receipt.sale_date.strftime('%Y-%m-%d %H:%M:%S') }}</td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <h2>Items</h2>
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Product Name</th>
+                            <th>Quantity</th>
+                            <th>Price</th>
+                            <th>Total Price</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for item in items %}
+                            <tr>
+                                <td>{{ item.product_name }}</td>
+                                <td>{{ item.quantity }}</td>
+                                <td>{{ item.price }}</td>
+                                <td>{{ item.total_price }}</td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            {% elif receipt is not none %}
+                <p>No receipt found with the provided ID.</p>
+            {% endif %}
+        </div>
+
+        <!-- Search Products Tab -->
+        <div class="tab-pane fade" id="product" role="tabpanel" aria-labelledby="product-tab">
+            <form method="post" action="{{ url_for('search_product') }}">
+                <div class="form-group">
+                    <label for="barcode">Barcode</label>
+                    <input type="text" class="form-control" id="barcode" name="barcode" required>
+                </div>
+                <button type="submit" class="btn btn-primary">Search</button>
+            </form>
+
+            {% if product %}
+                <h2>Product Details</h2>
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Product Name</th>
+                            <th>Quantity</th>
+                            <th>Price</th>
+                            <th>Total Price</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>{{ product.product_name }}</td>
+                            <td>{{ product.quantity }}</td>
+                            <td>{{ product.price }}</td>
+                            <td>{{ product.total_price }}</td>
+                        </tr>
+                    </tbody>
+                </table>
+            {% elif product is not none %}
+                <p>No product found with the provided barcode.</p>
+            {% endif %}
+        </div>
+
+        <!-- Search Users Tab -->
+        <div class="tab-pane fade" id="user" role="tabpanel" aria-labelledby="user-tab">
+            <form method="post" action="{{ url_for('search_user') }}">
+                <div class="form-group">
+                    <label for="user_id">User ID</label>
+                    <input type="text" class="form-control" id="user_id" name="user_id" required>
+                </div>
+                <button type="submit" class="btn btn-primary">Search</button>
+            </form>
+
+            {% if user %}
+                <h2>User Details</h2>
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>User ID</th>
+                            <th>Username</th>
+                            <th>Email</th>
+                            <th>Role</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>{{ user.user_id }}</td>
+                            <td>{{ user.username }}</td>
+                            <td>{{ user.email }}</td>
+                            <td>{{ user.role }}</td>
+                        </tr>
+                    </tbody>
+                </table>
+            {% elif user is not none %}
+                <p>No user found with the provided ID.</p>
+            {% endif %}
+        </div>
+    </div>
+
+{% endblock %}

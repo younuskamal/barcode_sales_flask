@@ -5,6 +5,9 @@ import os
 import random
 import string
 from flask import jsonify
+from flask import Response
+from utils import generate_invoice_pdf
+
 
 # إنشاء تطبيق Flask
 app = Flask(__name__)
@@ -399,7 +402,6 @@ def api_product():
         return jsonify({'error': 'An error occurred'}), 500
     finally:
         cursor.close()
-
 @app.route('/sell_product/complete', methods=['POST'])
 def complete_sale():
     if 'user_id' not in session:
@@ -416,9 +418,11 @@ def complete_sale():
 
     cursor = mysql.connection.cursor()
     try:
-        # توليد receipt_id للفاتورة
         receipt_id = generate_short_id(12)
-        
+
+        # Retrieve seller_id from the session
+        seller_id = session['user_id']
+
         for item in items:
             cursor.execute('SELECT id, quantity, sale_price FROM products WHERE name=%s', (item['productName'],))
             product = cursor.fetchone()
@@ -428,8 +432,8 @@ def complete_sale():
                     return jsonify({'error': f'Not enough stock for product {item["productName"]}'}), 400
 
                 total = item['quantity'] * sale_price
-                cursor.execute('INSERT INTO sales (id, product_id, quantity, total_price, buyer_name, buyer_phone, receipt_id) VALUES (%s, %s, %s, %s, %s, %s, %s)',
-                               (generate_short_id(12), product_id, item['quantity'], total, buyer_name, buyer_phone, receipt_id))
+                cursor.execute('INSERT INTO sales (id, product_id, quantity, total_price, buyer_name, buyer_phone, receipt_id, price, seller_id) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)',
+                               (generate_short_id(12), product_id, item['quantity'], total, buyer_name, buyer_phone, receipt_id, sale_price, seller_id))
                 cursor.execute('UPDATE products SET quantity=%s WHERE id=%s',
                                (available_quantity - item['quantity'], product_id))
             else:
@@ -437,7 +441,6 @@ def complete_sale():
 
         mysql.connection.commit()
 
-        # Fetch receipt data
         receipt_items = []
         for item in items:
             cursor.execute('SELECT sale_price FROM products WHERE name=%s', (item['productName'],))
@@ -448,7 +451,13 @@ def complete_sale():
                 'total': item['quantity'] * sale_price
             })
 
-        return jsonify({'success': True, 'receipt': receipt_items, 'receipt_id': receipt_id}), 200
+        # Generate PDF
+        pdf_buffer = generate_invoice_pdf(receipt_id, receipt_items, total_price, buyer_name, buyer_phone, seller_id)
+
+        return Response(pdf_buffer, mimetype='application/pdf', headers={
+            'Content-Disposition': f'attachment; filename=invoice_{receipt_id}.pdf'
+        })
+
     except Exception as e:
         print(f"Database Error: {e}")
         mysql.connection.rollback()
@@ -456,5 +465,89 @@ def complete_sale():
     finally:
         cursor.close()
 
+
+@app.route('/search_receipt', methods=['GET', 'POST'])
+def search_receipt():
+    if 'user_id' not in session:
+        flash('You need to log in to search for receipts.', 'danger')
+        return redirect(url_for('login'))
+    
+    receipt = None
+    items = []
+    
+    receipt_id = request.form.get('receipt_id')
+    
+    cursor = mysql.connection.cursor()
+    try:
+        cursor.execute('SELECT receipt_id, buyer_name, buyer_phone, total_price, sale_date FROM sales WHERE receipt_id=%s', (receipt_id,))
+        receipt = cursor.fetchone()
+        
+        if receipt:
+            cursor.execute('SELECT product_name, quantity, price, (quantity * price) AS total_price FROM sales WHERE receipt_id=%s', (receipt_id,))
+            items = cursor.fetchall()
+        else:
+            flash('Receipt not found.', 'danger')
+    
+    except Exception as e:
+        print(f"Database Error: {e}")
+        flash('An error occurred while searching for the receipt.', 'danger')
+    finally:
+        cursor.close()
+    
+    return render_template('search.html', receipt=receipt, items=items)
+
+@app.route('/search_product', methods=['GET', 'POST'])
+def search_product():
+    if 'user_id' not in session:
+        flash('You need to log in to search for products.', 'danger')
+        return redirect(url_for('login'))
+    
+    product = None
+    
+    barcode = request.form.get('barcode')
+    
+    cursor = mysql.connection.cursor()
+    try:
+        cursor.execute('SELECT name, quantity, sale_price AS price FROM products WHERE barcode=%s', (barcode,))
+        product = cursor.fetchone()
+        
+        if not product:
+            flash('Product not found.', 'danger')
+    
+    except Exception as e:
+        print(f"Database Error: {e}")
+        flash('An error occurred while searching for the product.', 'danger')
+    finally:
+        cursor.close()
+    
+    return render_template('search.html', product=product)
+
+@app.route('/search_user', methods=['GET', 'POST'])
+def search_user():
+    if 'user_id' not in session:
+        flash('You need to log in to search for users.', 'danger')
+        return redirect(url_for('login'))
+    
+    user = None
+    
+    user_id = request.form.get('user_id')
+    
+    cursor = mysql.connection.cursor()
+    try:
+        cursor.execute('SELECT id, username, email, role FROM users WHERE id=%s', (user_id,))
+        user = cursor.fetchone()
+        
+        if not user:
+            flash('User not found.', 'danger')
+    
+    except Exception as e:
+        print(f"Database Error: {e}")
+        flash('An error occurred while searching for the user.', 'danger')
+    finally:
+        cursor.close()
+    
+    return render_template('search.html', user=user)
+
 if __name__ == '__main__':
+
     app.run(debug=True)
