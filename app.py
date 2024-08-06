@@ -17,7 +17,7 @@ app.config['SECRET_KEY'] = os.urandom(24).hex()  # تعيين مفتاح سري 
 app.config['MYSQL_HOST'] = 'localhost'
 app.config['MYSQL_USER'] = 'root'  # اسم المستخدم لقاعدة البيانات
 app.config['MYSQL_PASSWORD'] = ''  # كلمة مرور قاعدة البيانات
-app.config['MYSQL_DB'] = 'barkod_system'
+app.config['MYSQL_DB'] = 'barcod_system'
 
 mysql = MySQL(app)
 
