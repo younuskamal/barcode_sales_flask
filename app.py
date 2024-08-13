@@ -549,5 +549,4 @@ def search_user():
     return render_template('search.html', user=user)
 
 if __name__ == '__main__':
-
     app.run(debug=True)
